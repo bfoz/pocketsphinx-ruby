@@ -12,7 +12,9 @@ module Pocketsphinx
         raise "Either a path or block is required to create a JSGF grammar" if args.empty? && !block_given?
 
         if block_given?
-          @grammar = Pocketsphinx::Grammar::Jsgf.new(*args, &block)
+          builder = Pocketsphinx::Grammar::JsgfBuilder.new
+          builder.instance_eval(&block)
+          @grammar = builder.jsgf
         else
           @grammar = args.first.is_a?(JSGF::Grammar) ? args.first : JSGF.read(*args) rescue raise('Invalid JSGF grammar')
         end

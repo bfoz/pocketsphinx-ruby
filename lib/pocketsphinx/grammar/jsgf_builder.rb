@@ -13,7 +13,7 @@ module Pocketsphinx
 
       def jsgf
         atom = {atom:@sentences.map(&:downcase).join(' | '), weight:1.0, tags:{}}
-        JSGF::Grammar.new(name:'default', public_rules:{'sentence' => [atom]}).to_s
+        JSGF::Grammar.new(name:'default', public_rules:{'sentence' => [atom]})
       end
     end
   end
