@@ -1,5 +1,3 @@
 #JSGF V1.0;
-
 grammar default;
-
 public <sentence> = go forward ten meters | go backward ten meters;

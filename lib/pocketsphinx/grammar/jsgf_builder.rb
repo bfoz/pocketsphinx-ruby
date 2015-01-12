@@ -1,3 +1,5 @@
+require 'jsgf'
+
 module Pocketsphinx
   module Grammar
     class JsgfBuilder
@@ -10,17 +12,8 @@ module Pocketsphinx
       end
 
       def jsgf
-        header + sentences_rule
-      end
-
-      private
-
-      def header
-        "#JSGF V1.0;\n\ngrammar default;\n\n"
-      end
-
-      def sentences_rule
-        "public <sentence> = #{@sentences.map(&:downcase).join(' | ')};"
+        atom = {atom:@sentences.map(&:downcase).join(' | '), weight:1.0, tags:{}}
+        JSGF::Grammar.new(name:'default', public_rules:{'sentence' => [atom]}).to_s
       end
     end
   end
