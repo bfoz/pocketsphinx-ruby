@@ -5,22 +5,33 @@ module JSGF
     def to_fsg
       raise StandardError, "The grammar must have at least one root" unless roots
       raise StandardError, "The grammar must contain at least one public rule" if roots.empty?
-      raise StandardError, "Can't handle multiple grammar roots" if roots.size > 1
-
-      root = roots.first.last
 
       final = Pocketsphinx::FSG::Node.new
-      transitions = expand_atom(root, final)
-      start_state = Pocketsphinx::FSG::Node.new(transitions)
-      Pocketsphinx::FSG.new(start_state, final).tap {|fsg| fsg.name = grammar_name }
+      transitions = roots.map {|(name, rule)| expand_atom(rule, final) }.reduce {|a,b| merge_transitions(a, b) }
+      start = Pocketsphinx::FSG::Node.new(transitions)
+      Pocketsphinx::FSG.new(start, final).tap {|fsg| fsg.name = grammar_name }
     end
 
   private
 
+    # Recursively merge the two transition sets, creating new nodes for any duplicates
+    # @param left   [Hash]
+    # @param right  [Hash]
+    # @return [Hash] a new set of transitions
+    def merge_transitions(left, right)
+      left.merge(right) do |word, lhs, rhs|
+        if (lhs === rhs)
+          lhs
+        else
+          Pocketsphinx::FSG::Node.new(merge_transitions(lhs.transitions, rhs.transitions))
+        end
+      end
+    end
+
     def expand_atom(atom, end_state)
       case atom
         when JSGF::Alternation
-          atom.map {|a| expand_atom(a, end_state) }.reduce {|a,b| a.merge b }
+          atom.map {|a| expand_atom(a, end_state) }.reduce {|a,b| merge_transitions(a, b) }
         when Array
           # Start with the last atom in the sequence and build a set of state transitions from the end
           start_state = atom.reverse.reduce(end_state) do |memo, a|

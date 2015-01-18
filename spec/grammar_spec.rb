@@ -48,6 +48,7 @@ describe Pocketsphinx::Configuration::Grammar do
       grammar = JSGF::Parser.new('#JSGF V1.0; grammar test; public <rule1>=one | two | three; public <rule2>=four | five | six;').parse
       fsg = grammar.to_fsg
       expect(fsg).to be_a(Pocketsphinx::FSG)
+      expect(fsg.start.transitions.size).to eq(6)
     end
 
     it 'create an fsg_model_t' do
