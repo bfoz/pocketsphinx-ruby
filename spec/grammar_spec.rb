@@ -22,6 +22,44 @@ describe Pocketsphinx::Configuration::Grammar do
     end
   end
 
+  context 'converting a grammar to an FSG' do
+    let(:grammar_path) { grammar :goforward }
+    subject { Pocketsphinx::Configuration::Grammar.new(grammar_path) }
+
+    it 'must handle a single rule with a single atom' do
+      grammar = JSGF::Parser.new('#JSGF V1.0; grammar test; public <rule>=one;').parse
+      fsg = grammar.to_fsg
+      expect(fsg).to be_a(Pocketsphinx::FSG)
+    end
+
+    it 'must handle a single rule with a sequence of atoms' do
+      grammar = JSGF::Parser.new('#JSGF V1.0; grammar test; public <rule>=one two;').parse
+      fsg = grammar.to_fsg
+      expect(fsg).to be_a(Pocketsphinx::FSG)
+    end
+
+    it 'must handle a single rule with an alternation of atoms' do
+      grammar = JSGF::Parser.new('#JSGF V1.0; grammar test; public <rule>=one | two | three;').parse
+      fsg = grammar.to_fsg
+      expect(fsg).to be_a(Pocketsphinx::FSG)
+    end
+
+    it 'must handle multiple public rules' do
+      grammar = JSGF::Parser.new('#JSGF V1.0; grammar test; public <rule1>=one | two | three; public <rule2>=four | five | six;').parse
+      fsg = grammar.to_fsg
+      expect(fsg).to be_a(Pocketsphinx::FSG)
+    end
+
+    it 'create an fsg_model_t' do
+      subject.fsg_model
+    end
+
+    it 'create an fsg_model_t with a decoder' do
+      decoder = Pocketsphinx::Decoder.new(subject)
+      subject.fsg_model(decoder)
+    end
+  end
+
   context "building a grammer from a block" do
     subject do
       Pocketsphinx::Configuration::Grammar.new do
